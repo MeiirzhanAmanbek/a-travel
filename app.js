@@ -137,7 +137,7 @@ let isLoading        = false;
 let filterDate       = '';      // 'YYYY-MM-DD' or ''
 let filterDelta      = false;   // ±3 days toggle
 let filterNightsFrom = 7;
-let filterNightsTo   = 7;
+let filterNightsTo   = 9;
 let filterAdults     = 2;
 
 function getActiveTours() {
