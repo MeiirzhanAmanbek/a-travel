@@ -371,11 +371,27 @@ body {
   background: linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.52) 100%);
 }
 
+/* Vietnam */
 .img-nha-trang   { background: linear-gradient(150deg, #0077b6 0%, #00b4d8 55%, #ade8f4 100%); }
 .img-phu-quoc    { background: linear-gradient(150deg, #e76f00 0%, #f4a623 55%, #fde68a 100%); }
 .img-da-nang     { background: linear-gradient(150deg, #1a237e 0%, #1565c0 55%, #64b5f6 100%); }
 .img-ho-chi-minh { background: linear-gradient(150deg, #6a0572 0%, #b5179e 55%, #e0aaff 100%); }
 .img-hanoi       { background: linear-gradient(150deg, #1b4332 0%, #40916c 55%, #95d5b2 100%); }
+/* Thailand */
+.img-phuket      { background: linear-gradient(150deg, #006994 0%, #0ea5e9 55%, #7dd3fc 100%); }
+.img-pattaya     { background: linear-gradient(150deg, #065f46 0%, #059669 55%, #6ee7b7 100%); }
+.img-koh-samui   { background: linear-gradient(150deg, #6d28d9 0%, #8b5cf6 55%, #c4b5fd 100%); }
+.img-bangkok     { background: linear-gradient(150deg, #991b1b 0%, #f97316 55%, #fcd34d 100%); }
+/* UAE */
+.img-dubai       { background: linear-gradient(150deg, #78350f 0%, #d97706 55%, #fde68a 100%); }
+.img-abu-dhabi   { background: linear-gradient(150deg, #1e3a5f 0%, #2563eb 55%, #93c5fd 100%); }
+/* Turkey */
+.img-antalya     { background: linear-gradient(150deg, #7f1d1d 0%, #dc2626 55%, #fca5a5 100%); }
+.img-istanbul    { background: linear-gradient(150deg, #1e1b4b 0%, #4f46e5 55%, #a5b4fc 100%); }
+.img-bodrum      { background: linear-gradient(150deg, #0c4a6e 0%, #0284c7 55%, #7dd3fc 100%); }
+/* Egypt */
+.img-hurghada    { background: linear-gradient(150deg, #7c2d12 0%, #ea580c 55%, #fdba74 100%); }
+.img-sharm       { background: linear-gradient(150deg, #831843 0%, #db2777 55%, #f9a8d4 100%); }
 
 /* Decorative SVG waves inside card images */
 .card-img-deco {
@@ -834,4 +850,14 @@ body {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.s-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b8f87' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
 }

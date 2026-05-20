@@ -1,11 +1,20 @@
 'use strict';
-// Vercel serverless — happy-travel.kz via Tourvisor API (no Playwright)
+// Vercel serverless — multi-country tour search
 
 const https = require('https');
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 const HT_UKEY = '20e21f93e0c7dcc4b6c655094441c9eb';
 const HT_BKEY = 'a18db8b9b7ec67ad61702c5ae1dddd36';
+
+const COUNTRY_MAP = {
+  vietnam:  { htId: 7,  tvId: 16, goturAlias: 'vietnam'  },
+  thailand: { htId: 3,  tvId: 2,  goturAlias: 'thailand' },
+  turkey:   { htId: 1,  tvId: 4,  goturAlias: 'turciya'  },
+  uae:      { htId: 2,  tvId: 9,  goturAlias: 'oae'      },
+  egypt:    { htId: 18, tvId: 1,  goturAlias: 'egypet'   },
+};
+
 const EMPTY_FILTERS = {
   airlines:[], beachTypes:[], datesList:[], hotelServices:[],
   hotelsIds:[], mealIds:[], nightsList:[], ratings:[],
@@ -19,16 +28,38 @@ function daysFromNow(n) { return new Date(Date.now() + n*24*60*60*1000).toISOStr
 function isoToDDMMYYYY(iso) { const [y,m,d]=iso.split('-'); return `${d}.${m}.${y}`; }
 function formatDate(iso) { return iso ? isoToDDMMYYYY(iso) : ''; }
 
-function mapDest(text) {
+function mapDest(text, country = 'vietnam') {
   const t=(text||'').toLowerCase();
+  // Vietnam
   if(t.includes('нячанг')||t.includes('камрань')||t.includes('nha trang')||t.includes('cam ranh')) return 'nha-trang';
   if(t.includes('фу куок')||t.includes('фукуок')||t.includes('phu quoc')) return 'phu-quoc';
   if(t.includes('дананг')||t.includes('da nang')||t.includes('danang')) return 'da-nang';
   if(t.includes('хошимин')||t.includes('хо ши мин')||t.includes('ho chi minh')||t.includes('сайгон')) return 'ho-chi-minh';
   if(t.includes('ханой')||t.includes('hanoi')) return 'hanoi';
   if(t.includes('фантьет')||t.includes('муйне')||t.includes('phan thiet')||t.includes('mui ne')) return 'nha-trang';
-  return 'nha-trang';
+  // Thailand
+  if(t.includes('пхукет')||t.includes('phuket')) return 'phuket';
+  if(t.includes('паттайя')||t.includes('pattaya')) return 'pattaya';
+  if(t.includes('самуи')||t.includes('samui')) return 'koh-samui';
+  if(t.includes('бангкок')||t.includes('bangkok')) return 'bangkok';
+  // UAE
+  if(t.includes('дубай')||t.includes('dubai')) return 'dubai';
+  if(t.includes('абу')||t.includes('abu dhabi')) return 'abu-dhabi';
+  if(t.includes('шарджа')||t.includes('sharjah')) return 'dubai';
+  // Turkey
+  if(t.includes('анталь')||t.includes('antalya')||t.includes('белек')||t.includes('belek')||
+     t.includes('алания')||t.includes('alanya')||t.includes('сиде')||t.includes(' side')||
+     t.includes('мармар')||t.includes('marmaris')||t.includes('кемер')||t.includes('kemer')) return 'antalya';
+  if(t.includes('стамбул')||t.includes('istanbul')) return 'istanbul';
+  if(t.includes('бодрум')||t.includes('bodrum')) return 'bodrum';
+  // Egypt
+  if(t.includes('хургада')||t.includes('hurghada')||t.includes('марса')||t.includes('marsa')) return 'hurghada';
+  if(t.includes('шарм')||t.includes('sharm')) return 'sharm';
+  // Country-specific defaults
+  const defaults = { vietnam:'nha-trang', thailand:'phuket', uae:'dubai', turkey:'antalya', egypt:'hurghada' };
+  return defaults[country] || 'nha-trang';
 }
+
 function mapMeal(s, f) {
   const sU=(s||'').toUpperCase(), fL=(f||'').toLowerCase();
   if(sU==='AI'||fL.includes('все включено')||fL.includes('all inclusive')) return 'all-inclusive';
@@ -76,14 +107,15 @@ function postJSON(hostname,path,body) {
 }
 
 // ── HT.KZ (fast: 3s wait + 1 poll) ───────
-async function fetchHT({ nightsFrom=7, nightsTo=7 }={}) {
+async function fetchHT({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
+  const { htId } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
   const today=todayISO(), dateTo=daysFromNow(60);
   const qBase=()=>Date.now()+Math.random().toString(36).slice(2,8);
 
   const init=await postJSON('ws.ht.kz',
     `/v1/search/web?query-id=${qBase()}&query-start-time=${Date.now()}&dbg-type=desktop&dbg-event-id=1`,
     { type:0, ukey:HT_UKEY, bkey:HT_BKEY,
-      params:{ adults:2, childAges:[], countryId:7, dateFrom:today, dateTo,
+      params:{ adults:2, childAges:[], countryId:htId, dateFrom:today, dateTo,
         departCityId:1, groupMode:1, hotels:[], nightsFrom, nightsTo,
         onlyHotels:false, currency:'kzt' } }
   );
@@ -97,10 +129,10 @@ async function fetchHT({ nightsFrom=7, nightsTo=7 }={}) {
     .filter(t=>t.price?.value>0 && t.nights>=nightsFrom && t.nights<=nightsTo)
     .map((t,i)=>{
       const departure=formatDate(t.dateFrom);
-      const link=`https://ht.kz/findtours?region=&departCity=1&country=7&hotel=${t.hotelId}&daysFrom=${nightsFrom}&daysTo=${nightsTo}&stars=any&adult=2&child=0&childAges=&splitRooms=&search=1&dateFrom=${departure}&delta=1&bank=`;
+      const link=`https://ht.kz/findtours?region=&departCity=1&country=${htId}&hotel=${t.hotelId}&daysFrom=${nightsFrom}&daysTo=${nightsTo}&stars=any&adult=2&child=0&childAges=&splitRooms=&search=1&dateFrom=${departure}&delta=1&bank=`;
       return { id:`ht_${i}`, agency:'ht.kz', badge:'badge-ht',
-        dest:mapDest(t.region||''),
-        hotel:(t.hotelName||'Vietnam Hotel').replace(/\d\*\s*$/,'').trim(),
+        dest:mapDest(t.region||'', country),
+        hotel:(t.hotelName||'Hotel').replace(/\d\*\s*$/,'').trim(),
         stars:t.stars||3, meal:mapMeal('',t.meal||''),
         departure, nights:t.nights, flight:'Air Astana',
         room:mapRoom(t.room||''), price:Math.round(t.price.value/2),
@@ -109,13 +141,14 @@ async function fetchHT({ nightsFrom=7, nightsTo=7 }={}) {
 }
 
 // ── HAPPY-TRAVEL.KZ (Tourvisor, 4s wait) ──
-async function fetchHappyTravel({ nightsFrom=7, nightsTo=7 }={}) {
+async function fetchHappyTravel({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
+  const { tvId } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
   const dateFrom=isoToDDMMYYYY(todayISO()), dateTo=isoToDDMMYYYY(daysFromNow(60));
   const ref='https%3A%2F%2Fhappy-travel.kz%2Ftur.php';
   const hdrs={ 'Referer':'https://happy-travel.kz/tur.php', 'Accept':'application/json' };
 
   const search=await fetchJSON(
-    `https://tourvisor.ru/xml/modsearch.php?datefrom=${dateFrom}&dateto=${dateTo}&directflight=0&regular=1&nightsfrom=${nightsFrom}&nightsto=${nightsTo}&adults=2&child=0&meal=0&rating=0&country=16&departure=60&currency=3&formmode=0&referrer=${ref}&session=`,
+    `https://tourvisor.ru/xml/modsearch.php?datefrom=${dateFrom}&dateto=${dateTo}&directflight=0&regular=1&nightsfrom=${nightsFrom}&nightsto=${nightsTo}&adults=2&child=0&meal=0&rating=0&country=${tvId}&departure=60&currency=3&formmode=0&referrer=${ref}&session=`,
     hdrs
   );
   const requestId=search.result?.requestid;
@@ -146,11 +179,11 @@ async function fetchHappyTravel({ nightsFrom=7, nightsTo=7 }={}) {
       const roomInfo=decode.rooms?.[bestTour.rm]||{};
       const departure=formatDate(bestTour.dt);
       const depDDMMYYYY=isoToDDMMYYYY(bestTour.dt);
-      const link=`https://happy-travel.kz/tur.php?ts_dosearch=1&s_form_mode=0&s_nights_from=${nightsFrom}&s_nights_to=${nightsTo}&s_directflight=0&s_regular=1&s_j_date_from=${depDDMMYYYY}&s_j_date_to=${depDDMMYYYY}&s_adults=2&s_flyfrom=60&s_country=16&s_currency=3`;
+      const link=`https://happy-travel.kz/tur.php?ts_dosearch=1&s_form_mode=0&s_nights_from=${nightsFrom}&s_nights_to=${nightsTo}&s_directflight=0&s_regular=1&s_j_date_from=${depDDMMYYYY}&s_j_date_to=${depDDMMYYYY}&s_adults=2&s_flyfrom=60&s_country=${tvId}&s_currency=3`;
       tours.push({
         id:`happy_${hotel.id}`, agency:'happy-travel.kz', badge:'badge-happy',
-        dest:mapDest(hotelInfo.region||''),
-        hotel:(hotelInfo.name||'Vietnam Hotel').trim(),
+        dest:mapDest(hotelInfo.region||'', country),
+        hotel:(hotelInfo.name||'Hotel').trim(),
         stars:parseInt(hotelInfo.stars||'3')||3,
         meal:mapMeal('',mealInfo.name||''),
         departure, nights:bestTour.nt,
@@ -166,23 +199,24 @@ async function fetchHappyTravel({ nightsFrom=7, nightsTo=7 }={}) {
 }
 
 // ── GOTUR.KZ ──────────────────────────────
-async function fetchGotur({ nightsFrom=7, nightsTo=7 }={}) {
+async function fetchGotur({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
+  const { goturAlias } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
   const date=todayISO();
   const tours=await fetchJSON(
-    `https://www.gotur.kz/country/load-tours.html?countryAlias=vietnam&departCityAlias=almaty&date=${date}&nights=${nightsFrom}&nightsTo=${nightsTo}`,
-    { Referer:'https://www.gotur.kz/tury/vietnam/almaty.html' }
+    `https://www.gotur.kz/country/load-tours.html?countryAlias=${goturAlias}&departCityAlias=almaty&date=${date}&nights=${nightsFrom}&nightsTo=${nightsTo}`,
+    { Referer:`https://www.gotur.kz/tury/${goturAlias}/almaty.html` }
   );
   if(!Array.isArray(tours)) throw new Error('Expected array');
   return tours
     .filter(t=>t.price?.forOne>0 && t.totalNights>=nightsFrom && t.totalNights<=nightsTo)
     .map((t,i)=>({
       id:`gotur_${i}`, agency:'gotour.kz', badge:'badge-gotour',
-      dest:mapDest(t.region?.name||''),
-      hotel:(t.hotel?.name||'Vietnam Hotel').replace(/\d\*\s*$/,'').trim(),
+      dest:mapDest(t.region?.name||'', country),
+      hotel:(t.hotel?.name||'Hotel').replace(/\d\*\s*$/,'').trim(),
       stars:parseInt(t.hotel?.class||'3')||3,
       meal:mapMeal(t.meal?.shortName,t.meal?.name),
       departure:formatDate(t.checkIn), nights:t.totalNights,
-      flight:(t.airlineCodes?.length?t.airlineCodes[0]:null)||'VietJet Air',
+      flight:(t.airlineCodes?.length?t.airlineCodes[0]:null)||'Air Astana',
       room:mapRoom(t.room?.name),
       price:t.price.forOne, available:null,
       link:`https://www.gotur.kz/tour/view.html?tour=${t.id}`,
@@ -190,16 +224,19 @@ async function fetchGotur({ nightsFrom=7, nightsTo=7 }={}) {
 }
 
 // ── HANDLER ───────────────────────────────
+const VALID_COUNTRIES = ['vietnam','thailand','turkey','uae','egypt'];
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   const nightsFrom=Math.max(1,parseInt(req.query?.nightsFrom)||7);
   const nightsTo=Math.max(nightsFrom,parseInt(req.query?.nightsTo)||7);
+  const country=VALID_COUNTRIES.includes(req.query?.country) ? req.query.country : 'vietnam';
   const t0=Date.now();
 
   const [htRes, happyRes, goturRes]=await Promise.allSettled([
-    fetchHT({nightsFrom,nightsTo}),
-    fetchHappyTravel({nightsFrom,nightsTo}),
-    fetchGotur({nightsFrom,nightsTo}),
+    fetchHT({nightsFrom,nightsTo,country}),
+    fetchHappyTravel({nightsFrom,nightsTo,country}),
+    fetchGotur({nightsFrom,nightsTo,country}),
   ]);
 
   const ht    = htRes.status    ==='fulfilled' ? htRes.value    : [];

@@ -10,9 +10,9 @@ const API_URL = window.location.hostname === 'localhost' || window.location.host
 const i18n = {
   ru: {
     nav_tag:        'Сравнение туров',
-    hero_badge:     'Алматы → Вьетнам',
-    hero_title:     'Найдите лучший тур во Вьетнам',
-    hero_subtitle:  'до 2 месяцев вперёд · 3 крупнейших агентства · Только лучшие цены',
+    hero_badge:     'Алматы → {country}',
+    hero_title:     'Получи лучшую цену',
+    hero_subtitle:  'Сравни цены не только разных платформ, но и историю цен',
     stat_tours:     'туров',
     stat_agencies:  'агентства',
     stat_nights:    'ночей',
@@ -31,11 +31,35 @@ const i18n = {
     avail:          'Осталось {n} мест',
     footer_desc:    'Сравнение туров от ведущих агентств Казахстана',
     footer_disclaimer: 'Цены указаны за всех выбранных путешественников при двухместном размещении и актуальны на момент публикации. Уточняйте у агентства перед бронированием.',
+    // Countries
+    search_country:   'Страна',
+    country_vietnam:  'Вьетнам',
+    country_thailand: 'Таиланд',
+    country_turkey:   'Турция',
+    country_uae:      'ОАЭ',
+    country_egypt:    'Египет',
+    // Vietnam destinations
     'nha-trang':    'Нячанг',
     'phu-quoc':     'Фу Куок',
     'da-nang':      'Дананг',
     'ho-chi-minh':  'Хошимин',
     'hanoi':        'Ханой',
+    // Thailand destinations
+    'phuket':       'Пхукет',
+    'pattaya':      'Паттайя',
+    'koh-samui':    'Ко Самуи',
+    'bangkok':      'Бангкок',
+    // UAE destinations
+    'dubai':        'Дубай',
+    'abu-dhabi':    'Абу-Даби',
+    // Turkey destinations
+    'antalya':      'Анталья',
+    'istanbul':     'Стамбул',
+    'bodrum':       'Бодрум',
+    // Egypt destinations
+    'hurghada':     'Хургада',
+    'sharm':        'Шарм-эль-Шейх',
+    // Meal & room types
     'breakfast':    'Завтрак',
     'all-inclusive':'Всё включено',
     'half-board':   'Полупансион',
@@ -43,6 +67,7 @@ const i18n = {
     'deluxe':       'Делюкс',
     'superior':     'Улучшенный',
     'suite':        'Сюит',
+    // UI
     empty_title:    'Туры не найдены',
     empty_sub:      'Измените параметры поиска или выберите другое агентство',
     status_loading: 'Загружаем актуальные цены с сайтов агентств…',
@@ -62,9 +87,9 @@ const i18n = {
   },
   kz: {
     nav_tag:        'Турларды салыстыру',
-    hero_badge:     'Алматы → Вьетнам',
-    hero_title:     'Вьетнамға ең тиімді турды табыңыз',
-    hero_subtitle:  '2 айға дейін · 3 агенттіктің бағасын салыстырамыз · Тек үздік ұсыныстар',
+    hero_badge:     'Алматы → {country}',
+    hero_title:     'Ең жақсы бағаны ал',
+    hero_subtitle:  'Тек платформалардың бағасын ғана емес, баға тарихын да салыстыр',
     stat_tours:     'тур',
     stat_agencies:  'агенттік',
     stat_nights:    'түн',
@@ -83,11 +108,35 @@ const i18n = {
     avail:          '{n} орын қалды',
     footer_desc:    'Қазақстанның жетекші агенттіктерінің турларын салыстыру',
     footer_disclaimer: 'Бағалар барлық таңдалған жолаушыларға 2 адамдық орналасу кезінде көрсетілген және жарияланған сәтте өзекті. Брондамас бұрын агенттіктен нақтылаңыз.',
+    // Countries
+    search_country:   'Ел',
+    country_vietnam:  'Вьетнам',
+    country_thailand: 'Тайланд',
+    country_turkey:   'Түркия',
+    country_uae:      'БАЭ',
+    country_egypt:    'Мысыр',
+    // Vietnam destinations
     'nha-trang':    'Нячанг',
     'phu-quoc':     'Фу Куок',
     'da-nang':      'Дананг',
     'ho-chi-minh':  'Хошимин',
     'hanoi':        'Ханой',
+    // Thailand destinations
+    'phuket':       'Пхукет',
+    'pattaya':      'Паттайя',
+    'koh-samui':    'Ко Самуи',
+    'bangkok':      'Бангкок',
+    // UAE destinations
+    'dubai':        'Дубай',
+    'abu-dhabi':    'Абу-Даби',
+    // Turkey destinations
+    'antalya':      'Анталья',
+    'istanbul':     'Стамбул',
+    'bodrum':       'Бодрум',
+    // Egypt destinations
+    'hurghada':     'Хургада',
+    'sharm':        'Шарм-эль-Шейх',
+    // Meal & room types
     'breakfast':    'Таңғы ас',
     'all-inclusive':'Бәрі кіреді',
     'half-board':   'Жарты пансион',
@@ -95,6 +144,7 @@ const i18n = {
     'deluxe':       'Делюкс',
     'superior':     'Жетілдірілген',
     'suite':        'Сюит',
+    // UI
     empty_title:    'Тур табылмады',
     empty_sub:      'Іздеу параметрлерін өзгертіп немесе басқа агенттікті таңдап көріңіз',
     status_loading: 'Агенттіктер сайттарынан өзекті бағаларды жүктеп жатырмыз…',
@@ -116,16 +166,16 @@ const i18n = {
 
 // ── MOCK DATA (fallback when server is offline) ───
 const MOCK_TOURS = [
-  { id: 1,  agency: 'ht.kz',          badge: 'badge-ht',     dest: 'nha-trang',    hotel: 'Muong Thanh Grand Nha Trang',    stars: 3, meal: 'breakfast',     departure: '15.06.2026', nights: 7, flight: 'Air Astana',       room: 'standard', price: 185000, available: 6 },
-  { id: 2,  agency: 'gotour.kz',       badge: 'badge-gotour', dest: 'nha-trang',    hotel: 'TTC Hotel Premium Nha Trang',    stars: 3, meal: 'breakfast',     departure: '20.06.2026', nights: 7, flight: 'VietJet Air',      room: 'standard', price: 192000, available: 8 },
+  { id: 1,  agency: 'ht.kz',           badge: 'badge-ht',     dest: 'nha-trang',    hotel: 'Muong Thanh Grand Nha Trang',    stars: 3, meal: 'breakfast',     departure: '15.06.2026', nights: 7, flight: 'Air Astana',       room: 'standard', price: 185000, available: 6 },
+  { id: 2,  agency: 'gotour.kz',        badge: 'badge-gotour', dest: 'nha-trang',    hotel: 'TTC Hotel Premium Nha Trang',    stars: 3, meal: 'breakfast',     departure: '20.06.2026', nights: 7, flight: 'VietJet Air',      room: 'standard', price: 192000, available: 8 },
   { id: 3,  agency: 'happy-travel.kz',  badge: 'badge-happy',  dest: 'nha-trang',    hotel: 'Galina Hotel & Spa',             stars: 3, meal: 'breakfast',     departure: '18.06.2026', nights: 7, flight: 'FlyArystan',       room: 'superior', price: 198000, available: 4 },
-  { id: 4,  agency: 'ht.kz',          badge: 'badge-ht',     dest: 'da-nang',      hotel: 'Sandy Beach Non Nuoc Resort',    stars: 3, meal: 'breakfast',     departure: '22.06.2026', nights: 7, flight: 'Air Astana',       room: 'deluxe',   price: 215000, available: 10 },
-  { id: 5,  agency: 'gotour.kz',       badge: 'badge-gotour', dest: 'nha-trang',    hotel: 'Sheraton Nha Trang Hotel & Spa', stars: 4, meal: 'breakfast',     departure: '25.06.2026', nights: 7, flight: 'VietJet Air',      room: 'standard', price: 245000, available: 5 },
+  { id: 4,  agency: 'ht.kz',           badge: 'badge-ht',     dest: 'da-nang',      hotel: 'Sandy Beach Non Nuoc Resort',    stars: 3, meal: 'breakfast',     departure: '22.06.2026', nights: 7, flight: 'Air Astana',       room: 'deluxe',   price: 215000, available: 10 },
+  { id: 5,  agency: 'gotour.kz',        badge: 'badge-gotour', dest: 'nha-trang',    hotel: 'Sheraton Nha Trang Hotel & Spa', stars: 4, meal: 'breakfast',     departure: '25.06.2026', nights: 7, flight: 'VietJet Air',      room: 'standard', price: 245000, available: 5 },
   { id: 6,  agency: 'happy-travel.kz',  badge: 'badge-happy',  dest: 'phu-quoc',     hotel: 'Vinpearl Resort & Spa Phú Quốc', stars: 4, meal: 'all-inclusive', departure: '01.07.2026', nights: 7, flight: 'Air Astana',       room: 'deluxe',   price: 268000, available: 3 },
-  { id: 7,  agency: 'ht.kz',          badge: 'badge-ht',     dest: 'da-nang',      hotel: 'Furama Resort Danang',           stars: 4, meal: 'half-board',    departure: '05.07.2026', nights: 7, flight: 'Vietnam Airlines', room: 'superior', price: 289000, available: 7 },
-  { id: 8,  agency: 'gotour.kz',       badge: 'badge-gotour', dest: 'ho-chi-minh',  hotel: 'Rex Hotel Saigon',               stars: 4, meal: 'breakfast',     departure: '10.07.2026', nights: 7, flight: 'FlyArystan',       room: 'deluxe',   price: 312000, available: 9 },
+  { id: 7,  agency: 'ht.kz',           badge: 'badge-ht',     dest: 'da-nang',      hotel: 'Furama Resort Danang',           stars: 4, meal: 'half-board',    departure: '05.07.2026', nights: 7, flight: 'Vietnam Airlines', room: 'superior', price: 289000, available: 7 },
+  { id: 8,  agency: 'gotour.kz',        badge: 'badge-gotour', dest: 'ho-chi-minh',  hotel: 'Rex Hotel Saigon',               stars: 4, meal: 'breakfast',     departure: '10.07.2026', nights: 7, flight: 'FlyArystan',       room: 'deluxe',   price: 312000, available: 9 },
   { id: 9,  agency: 'happy-travel.kz',  badge: 'badge-happy',  dest: 'nha-trang',    hotel: 'Diamond Bay Resort & Spa',       stars: 5, meal: 'all-inclusive', departure: '15.07.2026', nights: 7, flight: 'Vietnam Airlines', room: 'suite',    price: 345000, available: 2 },
-  { id: 10, agency: 'ht.kz',          badge: 'badge-ht',     dest: 'phu-quoc',     hotel: 'JW Marriott Phu Quoc Emerald Bay', stars: 5, meal: 'all-inclusive', departure: '20.07.2026', nights: 7, flight: 'Air Astana',      room: 'deluxe',   price: 389000, available: 4 },
+  { id: 10, agency: 'ht.kz',           badge: 'badge-ht',     dest: 'phu-quoc',     hotel: 'JW Marriott Phu Quoc Emerald Bay', stars: 5, meal: 'all-inclusive', departure: '20.07.2026', nights: 7, flight: 'Air Astana',      room: 'deluxe',   price: 389000, available: 4 },
 ];
 
 // ── STATE ─────────────────────────────────
@@ -134,11 +184,12 @@ let agency           = 'all';
 let sort             = 'price-asc';
 let liveTours        = null;
 let isLoading        = false;
-let filterDate       = '';      // 'YYYY-MM-DD' or ''
-let filterDelta      = false;   // ±3 days toggle
+let filterDate       = '';
+let filterDelta      = false;
 let filterNightsFrom = 7;
 let filterNightsTo   = 9;
 let filterAdults     = 2;
+let filterCountry    = 'vietnam';
 
 function getActiveTours() {
   return liveTours || MOCK_TOURS;
@@ -178,7 +229,6 @@ function nightsLabel(n) {
   return t('nights_unit', { n });
 }
 
-// Parse tour departure "DD.MM.YYYY" → Date object
 function parseDeparture(dep) {
   if (!dep) return null;
   const [d, m, y] = dep.split('.');
@@ -222,7 +272,6 @@ async function fetchTours() {
   if (isLoading) return;
   isLoading = true;
 
-  // Disable search button
   const btn = document.getElementById('searchBtn');
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
 
@@ -232,6 +281,7 @@ async function fetchTours() {
   const params = new URLSearchParams({
     nightsFrom: filterNightsFrom,
     nightsTo:   filterNightsTo,
+    country:    filterCountry,
   });
 
   try {
@@ -287,10 +337,11 @@ function showSkeleton() {
 
 // ── CARD TEMPLATE ─────────────────────────
 function cardHTML(tour, index) {
-  const destName  = t(tour.dest);
-  const mealName  = t(tour.meal);
-  const roomName  = tour.room ? t(tour.room) : '—';
-  const nLabel    = tour.nights ? nightsLabel(tour.nights) : '';
+  const destName   = t(tour.dest);
+  const mealName   = t(tour.meal);
+  const roomName   = tour.room ? t(tour.room) : '—';
+  const nLabel     = tour.nights ? nightsLabel(tour.nights) : '';
+  const countryLbl = t('country_' + filterCountry);
 
   const totalPrice = tour.price * filterAdults;
   const priceLabel = adultsLabel(filterAdults);
@@ -311,7 +362,7 @@ function cardHTML(tour, index) {
         <span class="card-badge ${tour.badge}">${tour.agency}</span>
         <div class="card-dest">
           ${destName}
-          <small>Вьетнам${nLabel ? ' · ' + nLabel : ''}</small>
+          <small>${countryLbl}${nLabel ? ' · ' + nLabel : ''}</small>
         </div>
       </div>
 
@@ -359,7 +410,6 @@ function cardHTML(tour, index) {
 function render() {
   let list = getActiveTours().slice();
 
-  // Client-side date filter
   if (filterDate) {
     const [fy, fm, fd] = filterDate.split('-');
     const target = new Date(+fy, +fm - 1, +fd);
@@ -372,7 +422,6 @@ function render() {
     });
   }
 
-  // Agency filter
   if (agency !== 'all') list = list.filter(item => item.agency === agency);
 
   list.sort((a, b) => {
@@ -402,15 +451,21 @@ function render() {
 // ── APPLY i18n TO STATIC ELEMENTS ─────────
 function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = t(el.dataset.i18n);
+    const key = el.dataset.i18n;
+    if (key === 'hero_badge') {
+      el.textContent = t(key, { country: t('country_' + filterCountry) });
+    } else {
+      el.textContent = t(key);
+    }
   });
   document.querySelectorAll('#sortSelect option[data-i18n]').forEach(opt => {
     opt.textContent = t(opt.dataset.i18n);
   });
-  // Update search button text
+  document.querySelectorAll('#filterCountry option[data-i18n]').forEach(opt => {
+    opt.textContent = t(opt.dataset.i18n);
+  });
   const searchBtn = document.getElementById('searchBtn');
   if (searchBtn && !searchBtn.disabled) searchBtn.textContent = t('search_go');
-  // Re-apply current status text in new language
   const bar = document.getElementById('statusBar');
   if (bar) {
     const state = (bar.className.match(/status-(\w+)/) || [])[1];
@@ -433,6 +488,9 @@ function syncFilterUI() {
   document.getElementById('filterNightsFrom').value = filterNightsFrom;
   document.getElementById('filterNightsTo').value   = filterNightsTo;
   document.getElementById('adultsVal').textContent  = filterAdults;
+
+  const countryEl = document.getElementById('filterCountry');
+  if (countryEl) countryEl.value = filterCountry;
 }
 
 // ── INIT ──────────────────────────────────
@@ -472,21 +530,30 @@ function init() {
 
   // ── SEARCH PANEL CONTROLS ────────────────
 
-  // Date input — dim the ±3 toggle when no date chosen
+  // Country selector — re-fetch for new country
+  document.getElementById('filterCountry')?.addEventListener('change', e => {
+    filterCountry = e.target.value;
+    const badgeEl = document.querySelector('[data-i18n="hero_badge"]');
+    if (badgeEl) badgeEl.textContent = t('hero_badge', { country: t('country_' + filterCountry) });
+    liveTours = null;
+    fetchTours();
+  });
+
+  // Date input
   document.getElementById('filterDate')?.addEventListener('change', e => {
     filterDate = e.target.value;
     const deltaField = document.getElementById('deltaField');
     if (deltaField) deltaField.style.opacity = filterDate ? '1' : '0.4';
-    render(); // date filter is client-side: instant update
+    render();
   });
 
   // ±3 days checkbox
   document.getElementById('filterDelta')?.addEventListener('change', e => {
     filterDelta = e.target.checked;
-    render(); // client-side
+    render();
   });
 
-  // Nights from/to — re-fetch when changed (server param)
+  // Nights from/to
   document.getElementById('filterNightsFrom')?.addEventListener('change', e => {
     filterNightsFrom = Math.max(1, parseInt(e.target.value) || 7);
     if (filterNightsTo < filterNightsFrom) {
@@ -499,7 +566,7 @@ function init() {
     filterNightsTo = Math.max(filterNightsFrom, parseInt(e.target.value) || 7);
   });
 
-  // Adults counter — client-side only (updates price display)
+  // Adults counter
   document.getElementById('adultsDown')?.addEventListener('click', () => {
     if (filterAdults <= 1) return;
     filterAdults--;
@@ -514,7 +581,7 @@ function init() {
     render();
   });
 
-  // Search button — re-fetch with new nights params
+  // Search button — re-fetch
   document.getElementById('searchBtn')?.addEventListener('click', () => {
     liveTours = null;
     fetchTours();
