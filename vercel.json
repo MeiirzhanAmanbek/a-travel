@@ -1,19 +1,17 @@
 {
   "version": 2,
-  "public": true,
   "builds": [
     { "src": "public/**", "use": "@vercel/static" },
-    { "src": "api/tours.js", "use": "@vercel/node" }
+    {
+      "src": "api/tours.js",
+      "use": "@vercel/node",
+      "config": { "maxDuration": 15 }
+    }
   ],
   "routes": [
     { "src": "/api/tours", "dest": "/api/tours.js" },
     { "src": "/style.css", "dest": "/public/style.css" },
     { "src": "/app.js", "dest": "/public/app.js" },
     { "src": "/", "dest": "/public/index.html" }
-  ],
-  "functions": {
-    "api/tours.js": {
-      "maxDuration": 15
-    }
-  }
+  ]
 }
