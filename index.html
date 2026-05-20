@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A-Travel — Вьетнам из Алматы</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-a">A</span><span class="logo-travel">-Travel</span>
+      </div>
+      <span class="nav-tag" data-i18n="nav_tag">Сравнение туров</span>
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="ru">RU</button>
+        <span class="lang-sep">|</span>
+        <button class="lang-btn" data-lang="kz">ҚЗ</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-pattern"></div>
+    <div class="hero-glow"></div>
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <span class="plane-icon">✈</span>
+        <span data-i18n="hero_badge">Алматы → Вьетнам</span>
+      </div>
+      <h1 class="hero-title" data-i18n="hero_title">Найдите лучший тур во Вьетнам</h1>
+      <p class="hero-subtitle" data-i18n="hero_subtitle">7 ночей · Сравниваем 3 крупнейших агентства · Только лучшие цены</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num">10</span>
+          <span class="stat-label" data-i18n="stat_tours">туров</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-num">3</span>
+          <span class="stat-label" data-i18n="stat_agencies">агентства</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-num">7</span>
+          <span class="stat-label" data-i18n="stat_nights">ночей</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </section>
+
+  <!-- SEARCH PANEL -->
+  <div class="search-panel-wrap">
+    <div class="container">
+      <div class="search-panel">
+
+        <div class="search-field">
+          <label class="s-label" data-i18n="search_date">Дата вылета</label>
+          <input type="date" id="filterDate" class="s-input s-input--date">
+        </div>
+
+        <div class="search-field search-field--delta" id="deltaField" style="opacity:0.4">
+          <label class="s-label">&nbsp;</label>
+          <label class="delta-toggle">
+            <input type="checkbox" id="filterDelta">
+            <span class="delta-check"></span>
+            <span data-i18n="search_delta">± 3 дня</span>
+          </label>
+        </div>
+
+        <div class="search-field">
+          <label class="s-label" data-i18n="search_nights">Ночей</label>
+          <div class="nights-range">
+            <input type="number" id="filterNightsFrom" class="s-input s-input--nights" min="1" max="30" value="7">
+            <span class="nights-sep" data-i18n="search_nights_to">до</span>
+            <input type="number" id="filterNightsTo" class="s-input s-input--nights" min="1" max="30" value="7">
+          </div>
+        </div>
+
+        <div class="search-field">
+          <label class="s-label" data-i18n="search_adults">Взрослые</label>
+          <div class="adults-counter">
+            <button class="counter-btn" id="adultsDown" type="button">−</button>
+            <span class="counter-val" id="adultsVal">2</span>
+            <button class="counter-btn" id="adultsUp" type="button">+</button>
+          </div>
+        </div>
+
+        <div class="search-field search-field--btn">
+          <label class="s-label">&nbsp;</label>
+          <button class="search-go-btn" id="searchBtn" type="button" data-i18n="search_go">Найти туры</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="statusBar" class="status-bar status-demo">
+    <div class="container status-inner">
+      <div class="status-left">
+        <span class="status-dot dot-demo"></span>
+        <span class="status-msg"></span>
+        <span class="status-extra"></span>
+      </div>
+      <button id="refreshBtn" class="refresh-btn" data-i18n="refresh_btn">Обновить</button>
+    </div>
+  </div>
+
+  <!-- FILTERS BAR -->
+  <div class="filters-bar-wrap">
+    <div class="container filters-bar">
+      <div class="agency-tabs">
+        <button class="tab active" data-agency="all" data-i18n="filter_all">Все агентства</button>
+        <button class="tab" data-agency="ht.kz">
+          <span class="tab-dot dot-ht"></span>ht.kz
+        </button>
+        <button class="tab" data-agency="happytravel.kz">
+          <span class="tab-dot dot-happy"></span>happytravel.kz
+        </button>
+        <button class="tab" data-agency="gotour.kz">
+          <span class="tab-dot dot-gotour"></span>gotour.kz
+        </button>
+      </div>
+      <div class="sort-wrap">
+        <label class="sort-label" data-i18n="sort_label">Сортировка:</label>
+        <select id="sortSelect" class="sort-select">
+          <option value="price-asc" data-i18n="sort_cheap">Сначала дешевле</option>
+          <option value="price-desc" data-i18n="sort_expensive">Сначала дороже</option>
+          <option value="stars-desc" data-i18n="sort_stars">По звёздам</option>
+        </select>
+      </div>
+    </div>
+    <div class="container">
+      <div class="results-bar">
+        <span id="resultsText"></span>
+        <span class="results-note" data-i18n="results_note">Обновлено: май 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOURS -->
+  <main class="tours-section">
+    <div class="container">
+      <div class="tours-grid" id="toursGrid"></div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-logo">
+        <span class="logo-a">A</span><span class="logo-travel">-Travel</span>
+      </div>
+      <p class="footer-desc" data-i18n="footer_desc">Сравнение туров от ведущих агентств Казахстана</p>
+      <div class="footer-agencies">
+        <span>ht.kz</span>
+        <span class="dot">·</span>
+        <span>happytravel.kz</span>
+        <span class="dot">·</span>
+        <span>gotour.kz</span>
+      </div>
+      <p class="footer-disclaimer" data-i18n="footer_disclaimer">
+        Цены указаны за 1 человека при двухместном размещении и актуальны на момент публикации.
+        Уточняйте у агентства перед бронированием.
+      </p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
