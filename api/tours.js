@@ -9,7 +9,7 @@ try {
 } catch { /* @vercel/kv not installed */ }
 
 const VALID_COUNTRIES = ['vietnam','thailand','turkey','uae','egypt'];
-const KV_TTL = 7200; // 2 hours, matches cron interval
+const KV_TTL = 90000; // 25 hours — matches cron interval with buffer
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

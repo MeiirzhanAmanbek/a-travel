@@ -7,7 +7,7 @@ const { kv } = require('@vercel/kv');
 const { fetchAllCountry } = require('./_lib');
 
 const COUNTRIES = ['vietnam', 'thailand', 'turkey', 'uae', 'egypt'];
-const KV_TTL    = 7200; // 2 hours
+const KV_TTL    = 90000; // 25 hours — slightly longer than cron interval so data never expires between runs
 
 module.exports = async function handler(req, res) {
   // Vercel automatically sends CRON_SECRET in Authorization header
