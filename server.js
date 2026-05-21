@@ -17,11 +17,11 @@ const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 
 // Country → API ID mappings
 const COUNTRY_MAP = {
-  vietnam:  { htId: 7,  tvId: 16, goturAlias: 'vietnam'  },
-  thailand: { htId: 3,  tvId: 2,  goturAlias: 'thailand' },
-  turkey:   { htId: 1,  tvId: 4,  goturAlias: 'turciya'  },
-  uae:      { htId: 2,  tvId: 9,  goturAlias: 'oae'      },
-  egypt:    { htId: 18, tvId: 1,  goturAlias: 'egypet'   },
+  vietnam:  { htId: 7,  tvId: 16 },
+  thailand: { htId: 3,  tvId: 2  },
+  turkey:   { htId: 1,  tvId: 4  },
+  uae:      { htId: 2,  tvId: 9  },
+  egypt:    { htId: 18, tvId: 1  },
 };
 
 // ── HELPERS ───────────────────────────────
@@ -135,9 +135,9 @@ const EMPTY_FILTERS = {
   onlyRecommendedHotels: false, onlySmart: false,
 };
 
-async function fetchHT({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } = {}) {
+async function fetchHT({ nightsFrom = 7, nightsTo = 7, country = 'vietnam', adults = 2 } = {}) {
   const { htId } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
-  console.log(`[ht.kz] Starting search: country=${country}(id=${htId}), nights ${nightsFrom}–${nightsTo}...`);
+  console.log(`[ht.kz] Starting search: country=${country}(id=${htId}), nights ${nightsFrom}–${nightsTo}, adults=${adults}...`);
   const today  = todayISO();
   const dateTo = daysFromNow(60);
   const qBase  = () => Date.now() + Math.random().toString(36).slice(2, 8);
@@ -147,7 +147,7 @@ async function fetchHT({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } = {
     {
       type: 0, ukey: HT_UKEY, bkey: HT_BKEY,
       params: {
-        adults: 2, childAges: [], countryId: htId,
+        adults, childAges: [], countryId: htId,
         dateFrom: today, dateTo,
         departCityId: 1, groupMode: 1, hotels: [],
         nightsFrom, nightsTo,
@@ -186,7 +186,7 @@ async function fetchHT({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } = {
     .filter(t => t.price?.value > 0 && t.nights >= nightsFrom && t.nights <= nightsTo)
     .map((t, i) => {
       const departure = formatDate(t.dateFrom);
-      const link = `https://ht.kz/findtours?region=&departCity=1&country=${htId}&hotel=${t.hotelId}&daysFrom=${nightsFrom}&daysTo=${nightsTo}&stars=any&adult=2&child=0&childAges=&splitRooms=&search=1&dateFrom=${departure}&delta=1&bank=`;
+      const link = `https://ht.kz/findtours?region=&departCity=1&country=${htId}&hotel=${t.hotelId}&daysFrom=${nightsFrom}&daysTo=${nightsTo}&stars=any&adult=${adults}&child=0&childAges=&splitRooms=&search=1&dateFrom=${departure}&delta=1&bank=`;
       return {
         id: `ht_${i}`, agency: 'ht.kz', badge: 'badge-ht',
         dest: mapDest(t.region || '', country),
@@ -196,22 +196,22 @@ async function fetchHT({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } = {
         departure, nights: t.nights,
         flight: 'Air Astana',
         room: mapRoom(t.room || ''),
-        price: Math.round(t.price.value / 2),
+        price: Math.round(t.price.value / adults),
         available: null, link,
       };
     });
 }
 
 // ── SCRAPER: HAPPY-TRAVEL.KZ (Tourvisor API) ──
-async function fetchHappyTravel({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } = {}) {
+async function fetchHappyTravel({ nightsFrom = 7, nightsTo = 7, country = 'vietnam', adults = 2 } = {}) {
   const { tvId } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
-  console.log(`[happy-travel.kz] Starting Tourvisor search: country=${country}(tv=${tvId}), nights ${nightsFrom}–${nightsTo}...`);
+  console.log(`[happy-travel.kz] Starting Tourvisor search: country=${country}(tv=${tvId}), nights ${nightsFrom}–${nightsTo}, adults=${adults}...`);
   const dateFrom = isoToDDMMYYYY(todayISO());
   const dateTo   = isoToDDMMYYYY(daysFromNow(60));
   const ref      = 'https%3A%2F%2Fhappy-travel.kz%2Ftur.php';
   const tvHeaders = { 'Referer': 'https://happy-travel.kz/tur.php', 'Accept': 'application/json' };
 
-  const searchUrl = `https://tourvisor.ru/xml/modsearch.php?datefrom=${dateFrom}&dateto=${dateTo}&directflight=0&regular=1&nightsfrom=${nightsFrom}&nightsto=${nightsTo}&adults=2&child=0&meal=0&rating=0&country=${tvId}&departure=60&pricefrom=0&priceto=0&currency=3&formmode=0&referrer=${ref}&session=`;
+  const searchUrl = `https://tourvisor.ru/xml/modsearch.php?datefrom=${dateFrom}&dateto=${dateTo}&directflight=0&regular=1&nightsfrom=${nightsFrom}&nightsto=${nightsTo}&adults=${adults}&child=0&meal=0&rating=0&country=${tvId}&departure=60&pricefrom=0&priceto=0&currency=3&formmode=0&referrer=${ref}&session=`;
   const search = await fetchJSON(searchUrl, tvHeaders);
   const requestId = search.result?.requestid;
   if (!requestId) throw new Error('[happy-travel.kz] No requestid from Tourvisor');
@@ -253,7 +253,7 @@ async function fetchHappyTravel({ nightsFrom = 7, nightsTo = 7, country = 'vietn
       const depDDMMYYYY = isoToDDMMYYYY(bestTour.dt);
       const operator    = operatorMap[bestTour.op] || 'Тур-оператор';
 
-      const link = `https://happy-travel.kz/tur.php?ts_dosearch=1&s_form_mode=0&s_nights_from=${nightsFrom}&s_nights_to=${nightsTo}&s_directflight=0&s_regular=1&s_j_date_from=${depDDMMYYYY}&s_j_date_to=${depDDMMYYYY}&s_adults=2&s_flyfrom=60&s_country=${tvId}&s_currency=3`;
+      const link = `https://happy-travel.kz/tur.php?ts_dosearch=1&s_form_mode=0&s_nights_from=${nightsFrom}&s_nights_to=${nightsTo}&s_directflight=0&s_regular=1&s_j_date_from=${depDDMMYYYY}&s_j_date_to=${depDDMMYYYY}&s_adults=${adults}&s_flyfrom=60&s_country=${tvId}&s_currency=3`;
 
       tours.push({
         id: `happy_${hotel.id}`,
@@ -266,7 +266,7 @@ async function fetchHappyTravel({ nightsFrom = 7, nightsTo = 7, country = 'vietn
         departure, nights: bestTour.nt,
         flight: operator,
         room: mapRoom(roomInfo.name || ''),
-        price: Math.round(bestTour.pr / 2),
+        price: Math.round(bestTour.pr / adults),
         available: null,
         link,
       });
@@ -278,64 +278,33 @@ async function fetchHappyTravel({ nightsFrom = 7, nightsTo = 7, country = 'vietn
   return tours;
 }
 
-// ── SCRAPER: GOTUR.KZ ─────────────────────
-async function fetchGotur({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } = {}) {
-  const { goturAlias } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
-  console.log(`[gotur.kz] Fetching: country=${country}(${goturAlias}), nights ${nightsFrom}–${nightsTo}...`);
-  const date = todayISO();
-  const url  = `https://www.gotur.kz/country/load-tours.html?countryAlias=${goturAlias}&departCityAlias=almaty&date=${date}&nights=${nightsFrom}&nightsTo=${nightsTo}`;
-  const tours = await fetchJSON(url, { Referer: `https://www.gotur.kz/tury/${goturAlias}/almaty.html` });
-  if (!Array.isArray(tours)) throw new Error('[gotur.kz] Expected array');
-  console.log(`[gotur.kz] Raw results: ${tours.length}`);
-
-  return tours
-    .filter(t => t.price?.forOne > 0 && t.totalNights >= nightsFrom && t.totalNights <= nightsTo)
-    .map((t, i) => ({
-      id: `gotur_${i}`, agency: 'gotour.kz', badge: 'badge-gotour',
-      dest: mapDest(t.region?.name || '', country),
-      hotel: (t.hotel?.name || 'Hotel').replace(/\d\*\s*$/, '').trim(),
-      stars: parseInt(t.hotel?.class || '3') || 3,
-      meal: mapMeal(t.meal?.shortName, t.meal?.name),
-      departure: formatDate(t.checkIn), nights: t.totalNights,
-      flight: (t.airlineCodes?.length ? t.airlineCodes[0] : null) || 'Air Astana',
-      room: mapRoom(t.room?.name),
-      price: t.price.forOne,
-      available: null,
-      link: `https://www.gotur.kz/tour/view.html?tour=${t.id}`,
-    }));
-}
-
 // ── MAIN ORCHESTRATOR ──────────────────────
-async function scrapeAll({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } = {}) {
-  const cacheKey = `${nightsFrom}|${nightsTo}|${country}`;
+async function scrapeAll({ nightsFrom = 7, nightsTo = 7, country = 'vietnam', adults = 2 } = {}) {
+  const cacheKey = `${nightsFrom}|${nightsTo}|${country}|${adults}`;
   const cached = searchCache.get(cacheKey);
   if (cached && Date.now() - cached.at < CACHE_TTL) {
-    console.log(`[API] Cache hit: nights ${nightsFrom}–${nightsTo}, country=${country}`);
+    console.log(`[API] Cache hit: nights ${nightsFrom}–${nightsTo}, country=${country}, adults=${adults}`);
     return { ...cached.data, cached: true };
   }
 
-  console.log(`\n[A-Travel] Fetching country=${country}, nights ${nightsFrom}–${nightsTo}, next 60 days...`);
+  console.log(`\n[A-Travel] Fetching country=${country}, nights ${nightsFrom}–${nightsTo}, adults=${adults}, next 60 days...`);
   const t0 = Date.now();
 
-  const [htRes, happyRes, goturRes] = await Promise.allSettled([
-    fetchHT({ nightsFrom, nightsTo, country }),
-    fetchHappyTravel({ nightsFrom, nightsTo, country }),
-    fetchGotur({ nightsFrom, nightsTo, country }),
+  const [htRes, happyRes] = await Promise.allSettled([
+    fetchHT({ nightsFrom, nightsTo, country, adults }),
+    fetchHappyTravel({ nightsFrom, nightsTo, country, adults }),
   ]);
 
   const ht    = htRes.status    === 'fulfilled' ? htRes.value    : [];
   const happy = happyRes.status === 'fulfilled' ? happyRes.value : [];
-  const gotur = goturRes.status === 'fulfilled' ? goturRes.value : [];
 
   if (htRes.status    === 'rejected') console.error('[ht.kz] Failed:', htRes.reason?.message);
   if (happyRes.status === 'rejected') console.error('[happy-travel.kz] Failed:', happyRes.reason?.message);
-  if (goturRes.status === 'rejected') console.error('[gotur.kz] Failed:', goturRes.reason?.message);
 
-  const htTop    = [...ht].sort((a, b) => a.price - b.price).slice(0, 15);
-  const happyTop = [...happy].sort((a, b) => a.price - b.price).slice(0, 15);
-  const goturTop = [...gotur].sort((a, b) => a.price - b.price).slice(0, 10);
+  const htTop    = [...ht].sort((a, b) => a.price - b.price).slice(0, 20);
+  const happyTop = [...happy].sort((a, b) => a.price - b.price).slice(0, 20);
 
-  const all = [...htTop, ...happyTop, ...goturTop];
+  const all = [...htTop, ...happyTop];
   all.sort((a, b) => a.price - b.price);
 
   const seen = new Set();
@@ -349,7 +318,7 @@ async function scrapeAll({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } =
     .map((t, i) => ({ ...t, id: `tour_${i + 1}` }));
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-  console.log(`[A-Travel] Done in ${elapsed}s — ${tours.length} tours | ht:${ht.length} happy:${happy.length} gotur:${gotur.length}`);
+  console.log(`[A-Travel] Done in ${elapsed}s — ${tours.length} tours | ht:${ht.length} happy:${happy.length}`);
 
   const result = {
     tours,
@@ -357,9 +326,8 @@ async function scrapeAll({ nightsFrom = 7, nightsTo = 7, country = 'vietnam' } =
     count: tours.length,
     elapsed: +elapsed,
     sources: {
-      'ht.kz':             htRes.status    === 'fulfilled' ? ht.length    : 'error',
-      'happy-travel.kz':   happyRes.status === 'fulfilled' ? happy.length : 'error',
-      'gotour.kz':         goturRes.status === 'fulfilled' ? gotur.length : 'error',
+      'ht.kz':           htRes.status    === 'fulfilled' ? ht.length    : 'error',
+      'happy-travel.kz': happyRes.status === 'fulfilled' ? happy.length : 'error',
     },
   };
 
@@ -374,8 +342,9 @@ app.get('/api/tours', async (req, res) => {
   const nightsFrom = Math.max(1, parseInt(req.query.nightsFrom) || 7);
   const nightsTo   = Math.max(nightsFrom, parseInt(req.query.nightsTo) || 7);
   const country    = VALID_COUNTRIES.includes(req.query.country) ? req.query.country : 'vietnam';
+  const adults     = Math.min(8, Math.max(1, parseInt(req.query.adults) || 2));
   try {
-    const data = await scrapeAll({ nightsFrom, nightsTo, country });
+    const data = await scrapeAll({ nightsFrom, nightsTo, country, adults });
     res.json({ ...data, cached: !!data.cached });
   } catch (err) {
     console.error('[API] Error:', err.message);
@@ -387,8 +356,9 @@ app.get('/api/refresh', (req, res) => {
   const nightsFrom = Math.max(1, parseInt(req.query.nightsFrom) || 7);
   const nightsTo   = Math.max(nightsFrom, parseInt(req.query.nightsTo) || 7);
   const country    = VALID_COUNTRIES.includes(req.query.country) ? req.query.country : 'vietnam';
-  searchCache.delete(`${nightsFrom}|${nightsTo}|${country}`);
-  res.json({ message: `Cache cleared for nights ${nightsFrom}–${nightsTo}, country=${country}.` });
+  const adults     = Math.min(8, Math.max(1, parseInt(req.query.adults) || 2));
+  searchCache.delete(`${nightsFrom}|${nightsTo}|${country}|${adults}`);
+  res.json({ message: `Cache cleared for nights ${nightsFrom}–${nightsTo}, country=${country}, adults=${adults}.` });
 });
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', cacheKeys: [...searchCache.keys()] }));

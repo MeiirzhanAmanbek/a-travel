@@ -8,11 +8,11 @@ const HT_UKEY = '20e21f93e0c7dcc4b6c655094441c9eb';
 const HT_BKEY = 'a18db8b9b7ec67ad61702c5ae1dddd36';
 
 const COUNTRY_MAP = {
-  vietnam:  { htId: 7,  tvId: 16, goturAlias: 'vietnam'  },
-  thailand: { htId: 3,  tvId: 2,  goturAlias: 'thailand' },
-  turkey:   { htId: 1,  tvId: 4,  goturAlias: 'turciya'  },
-  uae:      { htId: 2,  tvId: 9,  goturAlias: 'oae'      },
-  egypt:    { htId: 18, tvId: 1,  goturAlias: 'egypet'   },
+  vietnam:  { htId: 7,  tvId: 16 },
+  thailand: { htId: 3,  tvId: 2  },
+  turkey:   { htId: 1,  tvId: 4  },
+  uae:      { htId: 2,  tvId: 9  },
+  egypt:    { htId: 18, tvId: 1  },
 };
 
 const EMPTY_FILTERS = {
@@ -107,7 +107,7 @@ function postJSON(hostname,path,body) {
 }
 
 // ── HT.KZ (fast: 3s wait + 1 poll) ───────
-async function fetchHT({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
+async function fetchHT({ nightsFrom=7, nightsTo=7, country='vietnam', adults=2 }={}) {
   const { htId } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
   const today=todayISO(), dateTo=daysFromNow(60);
   const qBase=()=>Date.now()+Math.random().toString(36).slice(2,8);
@@ -115,7 +115,7 @@ async function fetchHT({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
   const init=await postJSON('ws.ht.kz',
     `/v1/search/web?query-id=${qBase()}&query-start-time=${Date.now()}&dbg-type=desktop&dbg-event-id=1`,
     { type:0, ukey:HT_UKEY, bkey:HT_BKEY,
-      params:{ adults:2, childAges:[], countryId:htId, dateFrom:today, dateTo,
+      params:{ adults, childAges:[], countryId:htId, dateFrom:today, dateTo,
         departCityId:1, groupMode:1, hotels:[], nightsFrom, nightsTo,
         onlyHotels:false, currency:'kzt' } }
   );
@@ -129,26 +129,26 @@ async function fetchHT({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
     .filter(t=>t.price?.value>0 && t.nights>=nightsFrom && t.nights<=nightsTo)
     .map((t,i)=>{
       const departure=formatDate(t.dateFrom);
-      const link=`https://ht.kz/findtours?region=&departCity=1&country=${htId}&hotel=${t.hotelId}&daysFrom=${nightsFrom}&daysTo=${nightsTo}&stars=any&adult=2&child=0&childAges=&splitRooms=&search=1&dateFrom=${departure}&delta=1&bank=`;
+      const link=`https://ht.kz/findtours?region=&departCity=1&country=${htId}&hotel=${t.hotelId}&daysFrom=${nightsFrom}&daysTo=${nightsTo}&stars=any&adult=${adults}&child=0&childAges=&splitRooms=&search=1&dateFrom=${departure}&delta=1&bank=`;
       return { id:`ht_${i}`, agency:'ht.kz', badge:'badge-ht',
         dest:mapDest(t.region||'', country),
         hotel:(t.hotelName||'Hotel').replace(/\d\*\s*$/,'').trim(),
         stars:t.stars||3, meal:mapMeal('',t.meal||''),
         departure, nights:t.nights, flight:'Air Astana',
-        room:mapRoom(t.room||''), price:Math.round(t.price.value/2),
+        room:mapRoom(t.room||''), price:Math.round(t.price.value/adults),
         available:null, link };
     });
 }
 
 // ── HAPPY-TRAVEL.KZ (Tourvisor, 4s wait) ──
-async function fetchHappyTravel({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
+async function fetchHappyTravel({ nightsFrom=7, nightsTo=7, country='vietnam', adults=2 }={}) {
   const { tvId } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
   const dateFrom=isoToDDMMYYYY(todayISO()), dateTo=isoToDDMMYYYY(daysFromNow(60));
   const ref='https%3A%2F%2Fhappy-travel.kz%2Ftur.php';
   const hdrs={ 'Referer':'https://happy-travel.kz/tur.php', 'Accept':'application/json' };
 
   const search=await fetchJSON(
-    `https://tourvisor.ru/xml/modsearch.php?datefrom=${dateFrom}&dateto=${dateTo}&directflight=0&regular=1&nightsfrom=${nightsFrom}&nightsto=${nightsTo}&adults=2&child=0&meal=0&rating=0&country=${tvId}&departure=60&currency=3&formmode=0&referrer=${ref}&session=`,
+    `https://tourvisor.ru/xml/modsearch.php?datefrom=${dateFrom}&dateto=${dateTo}&directflight=0&regular=1&nightsfrom=${nightsFrom}&nightsto=${nightsTo}&adults=${adults}&child=0&meal=0&rating=0&country=${tvId}&departure=60&currency=3&formmode=0&referrer=${ref}&session=`,
     hdrs
   );
   const requestId=search.result?.requestid;
@@ -179,7 +179,7 @@ async function fetchHappyTravel({ nightsFrom=7, nightsTo=7, country='vietnam' }=
       const roomInfo=decode.rooms?.[bestTour.rm]||{};
       const departure=formatDate(bestTour.dt);
       const depDDMMYYYY=isoToDDMMYYYY(bestTour.dt);
-      const link=`https://happy-travel.kz/tur.php?ts_dosearch=1&s_form_mode=0&s_nights_from=${nightsFrom}&s_nights_to=${nightsTo}&s_directflight=0&s_regular=1&s_j_date_from=${depDDMMYYYY}&s_j_date_to=${depDDMMYYYY}&s_adults=2&s_flyfrom=60&s_country=${tvId}&s_currency=3`;
+      const link=`https://happy-travel.kz/tur.php?ts_dosearch=1&s_form_mode=0&s_nights_from=${nightsFrom}&s_nights_to=${nightsTo}&s_directflight=0&s_regular=1&s_j_date_from=${depDDMMYYYY}&s_j_date_to=${depDDMMYYYY}&s_adults=${adults}&s_flyfrom=60&s_country=${tvId}&s_currency=3`;
       tours.push({
         id:`happy_${hotel.id}`, agency:'happy-travel.kz', badge:'badge-happy',
         dest:mapDest(hotelInfo.region||'', country),
@@ -189,38 +189,13 @@ async function fetchHappyTravel({ nightsFrom=7, nightsTo=7, country='vietnam' }=
         departure, nights:bestTour.nt,
         flight:operatorMap[bestTour.op]||'Тур-оператор',
         room:mapRoom(roomInfo.name||''),
-        price:Math.round(bestTour.pr/2),
+        price:Math.round(bestTour.pr/adults),
         available:null, link,
       });
     }
   }
   tours.sort((a,b)=>a.price-b.price);
   return tours;
-}
-
-// ── GOTUR.KZ ──────────────────────────────
-async function fetchGotur({ nightsFrom=7, nightsTo=7, country='vietnam' }={}) {
-  const { goturAlias } = COUNTRY_MAP[country] || COUNTRY_MAP.vietnam;
-  const date=todayISO();
-  const tours=await fetchJSON(
-    `https://www.gotur.kz/country/load-tours.html?countryAlias=${goturAlias}&departCityAlias=almaty&date=${date}&nights=${nightsFrom}&nightsTo=${nightsTo}`,
-    { Referer:`https://www.gotur.kz/tury/${goturAlias}/almaty.html` }
-  );
-  if(!Array.isArray(tours)) throw new Error('Expected array');
-  return tours
-    .filter(t=>t.price?.forOne>0 && t.totalNights>=nightsFrom && t.totalNights<=nightsTo)
-    .map((t,i)=>({
-      id:`gotur_${i}`, agency:'gotour.kz', badge:'badge-gotour',
-      dest:mapDest(t.region?.name||'', country),
-      hotel:(t.hotel?.name||'Hotel').replace(/\d\*\s*$/,'').trim(),
-      stars:parseInt(t.hotel?.class||'3')||3,
-      meal:mapMeal(t.meal?.shortName,t.meal?.name),
-      departure:formatDate(t.checkIn), nights:t.totalNights,
-      flight:(t.airlineCodes?.length?t.airlineCodes[0]:null)||'Air Astana',
-      room:mapRoom(t.room?.name),
-      price:t.price.forOne, available:null,
-      link:`https://www.gotur.kz/tour/view.html?tour=${t.id}`,
-    }));
 }
 
 // ── HANDLER ───────────────────────────────
@@ -231,23 +206,21 @@ module.exports = async function handler(req, res) {
   const nightsFrom=Math.max(1,parseInt(req.query?.nightsFrom)||7);
   const nightsTo=Math.max(nightsFrom,parseInt(req.query?.nightsTo)||7);
   const country=VALID_COUNTRIES.includes(req.query?.country) ? req.query.country : 'vietnam';
+  const adults=Math.min(8,Math.max(1,parseInt(req.query?.adults)||2));
   const t0=Date.now();
 
-  const [htRes, happyRes, goturRes]=await Promise.allSettled([
-    fetchHT({nightsFrom,nightsTo,country}),
-    fetchHappyTravel({nightsFrom,nightsTo,country}),
-    fetchGotur({nightsFrom,nightsTo,country}),
+  const [htRes, happyRes]=await Promise.allSettled([
+    fetchHT({nightsFrom,nightsTo,country,adults}),
+    fetchHappyTravel({nightsFrom,nightsTo,country,adults}),
   ]);
 
   const ht    = htRes.status    ==='fulfilled' ? htRes.value    : [];
   const happy = happyRes.status ==='fulfilled' ? happyRes.value : [];
-  const gotur = goturRes.status ==='fulfilled' ? goturRes.value : [];
 
-  const htTop    = [...ht].sort((a,b)=>a.price-b.price).slice(0,15);
-  const happyTop = [...happy].sort((a,b)=>a.price-b.price).slice(0,15);
-  const goturTop = [...gotur].sort((a,b)=>a.price-b.price).slice(0,10);
+  const htTop    = [...ht].sort((a,b)=>a.price-b.price).slice(0,20);
+  const happyTop = [...happy].sort((a,b)=>a.price-b.price).slice(0,20);
 
-  const all=[...htTop,...happyTop,...goturTop];
+  const all=[...htTop,...happyTop];
   all.sort((a,b)=>a.price-b.price);
 
   const seen=new Set();
@@ -266,7 +239,6 @@ module.exports = async function handler(req, res) {
     sources:{
       'ht.kz':          htRes.status==='fulfilled'    ? ht.length    : 'error',
       'happy-travel.kz':happyRes.status==='fulfilled' ? happy.length : 'error',
-      'gotour.kz':      goturRes.status==='fulfilled' ? gotur.length : 'error',
     },
   });
 };
